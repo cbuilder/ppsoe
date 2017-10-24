@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -18,16 +19,19 @@ int main( void )
     struct tm *tms;
     int bc = 1;
 
-    sock = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
-    if ( sock == -1 )
-    {
+    sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if ( sock == -1 ) {
         printf("Ошибка создания сокета");
         return 0;
     }
-    if (-1 == setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &bc, sizeof(bc)))
+    if (-1 == setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &bc, sizeof(bc))) {
         printf( "Ошибка настройки broadcast: %s\n", strerror(errno));
+        return 0;
+    }
     sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+ //   sa.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    sa.sin_addr.s_addr = inet_addr("10.0.47.255");
+    printf("sa.sin_addr.s_addr = 0x%x\n", sa.sin_addr.s_addr);
     sa.sin_port = htons(7654);
 
     clock_gettime(CLOCK_REALTIME, &tp);
