@@ -16,6 +16,7 @@ int main( void )
     char buffer[16]="Hello";
     struct timespec tp;
     struct tm *tms;
+    int bc = 1;
 
     sock = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
     if ( sock == -1 )
@@ -23,8 +24,10 @@ int main( void )
         printf("Ошибка создания сокета");
         return 0;
     }
-    sa.sin_family = PF_INET;
-    sa.sin_addr.s_addr = htonl(0x7F000001);
+    if (-1 == setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &bc, sizeof(bc)))
+        printf( "Ошибка настройки broadcast: %s\n", strerror(errno));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = htonl(INADDR_BROADCAST);
     sa.sin_port = htons(7654);
 
     clock_gettime(CLOCK_REALTIME, &tp);
@@ -34,18 +37,15 @@ int main( void )
 
     while(1) {
         /* Шлём секундную метку */
-        bytes_sent =
-            sendto(
+        bytes_sent = sendto(
                 sock,
                 buffer,
                 strlen(buffer),
                 0,
-                ( struct sockaddr* )&sa,
-                sizeof( struct sockaddr_in )
-            );
-
+                (struct sockaddr *)&sa,
+                sizeof(struct sockaddr_in));
         if ( bytes_sent < 0 )
-            printf( "Ошибка отправки пакета: %s\n", strerror( errno ) );
+            printf( "Ошибка отправки пакета: %s\n", strerror(errno));
         /* Подготовка пакета на следующую секунду */
         tp.tv_sec = tp.tv_sec + 1;
         tms = gmtime(&tp.tv_sec);
