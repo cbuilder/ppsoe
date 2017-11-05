@@ -21,6 +21,7 @@ int main( void )
     struct tm *tms;
     int bc = 1;
     struct ifreq ifr;
+    int ttl = 1;
 
     sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if ( sock == -1 ) {
@@ -32,6 +33,7 @@ int main( void )
         return 0;
     }
     sa.sin_family = AF_INET;
+    setsockopt(sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
     strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
     if (ioctl(sock, SIOCGIFBRDADDR, &ifr) < 0)
         perror("ioctl");
