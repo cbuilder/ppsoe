@@ -6,6 +6,8 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -18,6 +20,7 @@ int main( void )
     struct timespec tp;
     struct tm *tms;
     int bc = 1;
+    struct ifreq ifr;
 
     sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if ( sock == -1 ) {
@@ -29,9 +32,11 @@ int main( void )
         return 0;
     }
     sa.sin_family = AF_INET;
- //   sa.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    sa.sin_addr.s_addr = inet_addr("10.0.47.255");
-    printf("sa.sin_addr.s_addr = 0x%x\n", sa.sin_addr.s_addr);
+    strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
+    if (ioctl(sock, SIOCGIFBRDADDR, &ifr) < 0)
+        perror("ioctl");
+    struct sockaddr_in *sinp = &ifr.ifr_broadaddr;
+    sa.sin_addr.s_addr = sinp->sin_addr.s_addr;
     sa.sin_port = htons(7654);
 
     clock_gettime(CLOCK_REALTIME, &tp);
